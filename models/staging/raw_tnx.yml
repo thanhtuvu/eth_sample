@@ -1,0 +1,22 @@
+models:
+  - name: raw_tnx
+    description: this table contains sample raw data from ETH transactions in a BigQuery public dataset
+    columns:
+      - name: value
+        description: Value transferred in Wei
+        data_tests:
+          - dbt_utils.expression_is_true:
+              arguments:
+                expression: ">= 0"
+                
+      - name: tnx_hash
+        description: Hash of the transaction
+        data_tests:
+          - not_null
+          - unique
+        
+      - name: block_number
+        description: Block number where this transaction was in
+      - name: block_date
+        description: date of the block. This is also a partitioned column of the table
+  
