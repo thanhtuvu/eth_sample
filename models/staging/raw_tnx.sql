@@ -13,7 +13,7 @@ SELECT
   from_address,
   to_address,
   value,
-  
+  CAST(value AS BIGNUMERIC) / 1e18  as eth_value, 
   block_number,
   `hash` as tnx_hash,
   date(block_timestamp) as block_date,
