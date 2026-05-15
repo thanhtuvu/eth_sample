@@ -1,9 +1,25 @@
 models:
   - name: raw_tnx
     description: this table contains sample raw data of successful ETH transactions from a BigQuery public dataset
+    config: 
+      contract:
+        enforced: true
     columns:
+      - name: from_address
+        data_type: string
+        constraints:
+          - type: not_null
+
+      - name: to_address
+        data_type: string
+        constraints:
+          - type: not_null
+
       - name: value
         description: Value transferred in Wei
+        data_type: numeric
+        constraints:
+          - type: not_null
         data_tests:
           - dbt_utils.expression_is_true:
               arguments:
@@ -11,6 +27,9 @@ models:
 
       - name: eth_value
         description: ETH value converted from wei
+        data_type: bignumeric
+        constraints:
+          - type: not_null
         data_tests:
           - dbt_utils.expression_is_true:
               arguments:
@@ -18,12 +37,17 @@ models:
 
       - name: tnx_hash
         description: Hash of the transaction
-        data_tests:
-          - not_null
-          - unique
+        data_type: string
+        constraints:
+          - type: not_null
+          - type: unique
         
       - name: block_number
         description: Block number where this transaction was in
+
       - name: block_date
         description: date of the block. This is also a partitioned column of the table
+        data_type: date
+        constraints:
+          - type: not_null
   
