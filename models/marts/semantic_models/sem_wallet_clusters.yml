@@ -1,0 +1,96 @@
+version: 2
+semantic_models:
+  - name: semantic_wallet_cluster
+    description: "Wallet cluster risk and ETH activity"
+    model: ref('fct_clusters_audit')
+
+    defaults:
+      agg_time_dimension: created_at
+
+    entities:
+      - name: cluster
+        type: primary
+        expr: cluster_id
+
+    dimensions:
+      - name: risk_flag
+        type: categorical
+        expr: risk_flag
+
+      - name: size_status
+        type: categorical
+        expr: size_status
+
+      - name: created_at
+        type: time
+        expr: created_at
+
+        type_params:
+          time_granularity: day
+
+    measures:
+      - name: clusters_count
+        agg: count_distinct
+        expr: cluster_id
+
+        filter:
+          - field: cluster__size_status
+            operator: "="
+            value: ok
+
+      - name: total_eth
+        agg: sum
+        expr: total_eth_value
+
+        filter:
+          - field: cluster__size_status
+            operator: "="
+            value: ok
+
+
+metrics:
+  - name: clusters_count
+    type: simple
+
+    type_params:
+      measure:
+        name: clusters_count
+
+  - name: total_eth
+    type: simple
+
+    type_params:
+      measure:
+        name: total_eth
+
+  - name: high_risk_cluster_count
+    type: simple
+
+    type_params:
+      measure:
+        name: clusters_count
+
+    filter:
+      - field: cluster__risk_flag
+        operator: "="
+        value: high_risk
+
+  - name: pct_high_risk
+    type: derived
+
+    type_params:
+      expr: high_risk_cluster_count / clusters_count
+
+      metrics:
+        - name: high_risk_cluster_count
+        - name: clusters_count
+
+  - name: avg_eth_by_risk_flag
+    type: derived
+
+    type_params:
+      expr: total_eth / clusters_count
+
+      metrics:
+        - name: total_eth
+        - name: clusters_count
