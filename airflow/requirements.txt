@@ -1,0 +1,14 @@
+
+apache-airflow-providers-google==10.13.0
+
+dbt-bigquery==1.7.0
+# astronomer-cosmos==1.4.0
+
+networkx==3.2.0
+
+pandas==2.1.0
+google-cloud-bigquery==3.13.0
+pyarrow==14.0.0
+db-dtypes==1.2.0
+
+python-dotenv==1.0.0

@@ -1,6 +1,33 @@
-.env                    # ← never commit credentials
-*.json                  # ← never commit service account keys
+# ── dbt ──────────────────────────────────────────────────────────────
 target/
 dbt_packages/
 logs/
-dbt_internal_packages/
+profiles.yml
+
+# ── GCP credentials ──────────────────────────────────────────────────
+*_gcp_key.json
+
+# ── Airflow ──────────────────────────────────────────────────────────
+airflow/logs/
+airflow/.astro/
+airflow/airflow.db
+airflow/airflow-webserver.pid
+
+# ── Environment & secrets ─────────────────────────────────────────────
+.env
+
+# ── Python ───────────────────────────────────────────────────────────
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+.Python
+
+# ── OS ───────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ── IDE ──────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.code-workspace
