@@ -1,3 +1,4 @@
+#This file can only be run on paid plan with BigQuery to use dataproc. For free plan, airflow will use the clusters_util.py
 def model(dbt, session):
 
     dbt.config(
@@ -19,17 +20,19 @@ def model(dbt, session):
         target="wallet_b"
     )
 
-    components = nx.connected_components(G)  
-    
-    rows = [
-        {
-            "wallet_id": wallet,
-            "cluster_id": str(cluster_id),
-            "cluster_size": len(component)
-        }
-        for cluster_id, component in enumerate(components)
-        for wallet in component
-    ]
+    components = list(nx.connected_components(G))  
+
+    rows = []
+        
+    for component in components:
+        cluster_min  = min(component)          # computed ONCE per component
+        cluster_size = len(component)          # computed ONCE per component
+        for wallet in component:
+            rows.append({
+                "wallet_address": wallet,
+                "cluster_id"    : cluster_min,
+                "cluster_size"  : cluster_size
+            })
 
     # ── Return as Spark DataFrame ─────────────────────────
 
