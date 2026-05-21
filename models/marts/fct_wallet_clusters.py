@@ -1,4 +1,4 @@
-#This file can only be run on paid plan with BigQuery to use dataproc. For free plan, airflow will use the clusters_util.py
+#This file can only be run on paid plan with BigQuery to use dataproc. For free plan, airflow will use the clusters_utils.py
 def model(dbt, session):
 
     dbt.config(
