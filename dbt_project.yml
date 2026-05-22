@@ -2,7 +2,7 @@ name: 'ETH_2026_sample'
 version: '1.0.0'
 config-version: 2
 
-profile: 'default'
+profile: 'ETH_2026_sample'
 
 model-paths: ["models"]
 analysis-paths: ["analyses"]
@@ -15,7 +15,7 @@ target-path: "target"  # directory which will store compiled SQL files
 clean-targets:         # directories to be removed by `dbt clean`
   - "target"
   - "dbt_packages"
-
+  
 models:
   ETH_2026_sample:
     +persist_docs:
