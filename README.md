@@ -1,93 +1,104 @@
-# dbtLearnProject
+# eth_sample — Ethereum Wallet Clustering Pipeline
+
+An end-to-end data pipeline that clusters Ethereum wallets based on on-chain transaction relationships — wallets that repeatedly transact with each other form clusters ***(sample period from 2026-02-28 to 2026-03-01)***. This exercise helps reveal potential fraudster activities. 
+
+---
+
+## What It Does
 
 
+This project:
+1. Ingests raw Ethereum transaction data into **Google BigQuery**
+2. Models wallet-to-wallet edges and dimensional wallet attributes and risk category via **dbt**
+3. Runs a **NetworkX graph algorithm** to compute wallet clusters from the edge network
+4. Audits and validates cluster outputs downstream
+5. Orchestrates the full pipeline daily via **Apache Airflow**
+---
 
-## Getting started
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
-
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
-
-## Add your files
-
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+## Project Structure
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/tuthanhvu-group/dbtlearnproject.git
-git branch -M main
-git push -uf origin main
+eth_sample/                         ← repo root
+│
+├── airflow/
+│    └── dags/
+│       ├── utils/
+│       │    └── clusters_utils.py  # NetworkX clustering │logic
+│       └── eth_pipeline.py         # main DAG  
+│
+├── models/
+│   ├── staging/                    # raw source cleaning — materialised as views
+│   ├── intermediate/               # wallet edge construction — materialised as tables
+│   ├── marts/                      # wallet activity + cluster facts + audit + semantic models — materialised as tables
+│   └── exposures.yml               # models usage in dashboards
+│
+├── analyses/                       # ad-hoc dbt analyses
+├── macros/                         # reusable SQL macros
+│    ├── audit_cluster_health.sql
+│    ├── cast_to_bignumeric.sql
+│    ├── classify_edge_risk.sql
+│    ├── find_macro_usage.sql
+│    ├── override_default_schema_name.sql
+│    ├── show_env.sql
+├── scripts/                        
+│   └── cluster_metric_query.yml    # semantic layers metrics query
+├── seeds/                          # static reference data
+├── snapshots/                      # slowly changing dimensions
+├── tests/                          # custom dbt data quality tests
+│    └── one_wallet_one_cluster.sql # check if any wallet belongs to more than 1 cluster 
+├── dbt_project.yml                 # project config + layer materialisation
+└── packages.yml                    # dbt package dependencies                
+```
+---
+
+## Pipeline DAG
+
+```
+source_freshness
+      │
+   raw_tnx
+      │
+fct_wallet_edges
+      │
+dim_wallet_address
+      │
+fct_wallet_clusters   ← NetworkX graph algorithm (Python)
+      │
+fct_wallet_activity
+      │
+fct_clusters_audit
+      │
+   dbt_tests
 ```
 
-## Integrate with your tools
+Runs daily at **06:00 UTC** via cron `0 6 * * *`.
 
-* [Set up project integrations](https://gitlab.com/tuthanhvu-group/dbtlearnproject/-/settings/integrations)
+---
 
-## Collaborate with your team
+## dbt Features Demonstrated
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+- **Multi-layer schema separation** — `staging`, `intermediate`, `marts` each write to their own BigQuery dataset, defined via `+schema` in `dbt_project.yml`
+- **Layer-based materialisation** — staging as `view`, intermediate and marts as `table`
+- **`+persist_docs`** — table and column descriptions from `.yml` files are pushed directly to BigQuery at both relation and column level
+- **Source freshness checks** — validates upstream data arrives on time before any model runs
+- **dbt tests** — schema + custom data quality tests run as the final pipeline step
 
-## Test and Deploy
 
-Use the built-in continuous integration in GitLab.
+---
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+## Observability
 
-***
+### Airflow-level
+- **Retry logic** — configurable retries with delay on all tasks via `default_args`; `source_freshness` gets additional retries given its dependency on external upstream data
+- **Retry callback** — logs task ID and attempt number on every retry event
+- **Failure callback** — logs task ID and run ID on terminal failure, ready to extend with Slack or PagerDuty alerting
+- **Environment validation at import time** — DAG raises `EnvironmentError` immediately if `DBT_PROJECT_DIR` or `DBT_PROFILES_DIR` are missing, surfacing misconfiguration before any task runs
+- **Shell-level logging** — every `BashOperator` wraps dbt commands with `[START]` and `[END]` echo markers for clean log tracing in Airflow UI
 
-# Editing this README
+### dbt-level
+- **Source freshness** as a dedicated DAG task — failures block the entire downstream pipeline
+- **`dbt test`** as terminal task — pipeline is only considered successful if all data quality checks pass
+- **Cluster audit model** (`fct_clusters_audit`) — dedicated model that validates cluster output integrity post-computation
+- **`audit_helper`** package — enables model output comparison across runs to catch silent regressions
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.

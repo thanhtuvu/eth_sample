@@ -51,8 +51,6 @@ def failure_callback(context):
     )
 
 # ── DAG config ────────────────────────────────────────────────────────
-
-
 default_args = {
     "owner"      : "airflow",
     "retries"    : 1,
