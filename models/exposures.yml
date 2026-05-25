@@ -1,13 +1,13 @@
 # models/exposures.yml
 exposures:
-  - name: ETHclustertransations
+  - name: ETHclustersdashboard
     type: dashboard
     maturity: high
-    url: https://datastudio.google.com/reporting/b1f41105-7593-44d6-9398-2e31aadd3e1d
+    url: https://datastudio.google.com/reporting/b1f41105-7593-44d6-9398-2e31aadd3e1d/page/tEnnC
     description: ETH value generated in each cluster
     owner:
-      name: Tu Vu
-      email: tuvu.uwyo@gmail.com
+      name: TV
+      email: myemail@gmail.com
     depends_on:
       - ref('fct_wallet_activity')
       - ref('fct_wallet_clusters')

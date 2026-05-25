@@ -10,6 +10,7 @@
 with result AS (
     SELECT
         t1.cluster_id
+        ,MAX(t1.cluster_size) as cluster_size
         ,SUM(t2.eth_sent) AS total_eth_value
         ,CASE
             WHEN MAX(t1.cluster_size) != COUNT(distinct t1.wallet_address)
