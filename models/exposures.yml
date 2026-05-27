@@ -9,5 +9,4 @@ exposures:
       name: TV
       email: myemail@gmail.com
     depends_on:
-      - ref('fct_wallet_activity')
-      - ref('fct_wallet_clusters')
+      - ref('fct_clusters_audit')

@@ -1,5 +1,3 @@
-# dags/utils/cluster_utils.py
-
 import os
 import logging
 import networkx as nx
@@ -46,6 +44,7 @@ def compute_wallet_clusters():
 
         # ── Pull edges ────────────────────────────────────────────
         log.info(f"Pulling edges from {PROJECT}.{SOURCE_DATASET}.fct_wallet_pair")
+
         edges_df = client.query(f"""
             SELECT wallet_a, wallet_b
             FROM `{PROJECT}.{SOURCE_DATASET}.fct_wallet_pair`
@@ -54,6 +53,7 @@ def compute_wallet_clusters():
 
         # ── Build graph ───────────────────────────────────────────
         log.info("Building NetworkX graph...")
+        
         G = nx.from_pandas_edgelist(
             edges_df,
             source="wallet_a",
@@ -84,7 +84,6 @@ def compute_wallet_clusters():
 
         # ── Write to BigQuery ─────────────────────────────────────
         destination = f"{PROJECT}.{DEST_DATASET}.fct_wallet_clusters"
-        log.info(f"Writing to {destination}...")
 
         job_config = bigquery.LoadJobConfig(
             write_disposition="WRITE_TRUNCATE",
@@ -96,6 +95,7 @@ def compute_wallet_clusters():
             ]
         )
 
+        log.info(f"Writing to {destination}...")
         client.load_table_from_dataframe(
             result_df,
             destination,
