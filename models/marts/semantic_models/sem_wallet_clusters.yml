@@ -33,61 +33,49 @@ semantic_models:
         agg: count_distinct
         expr: cluster_id
 
-        filter:
-          - field: cluster__size_status
-            operator: "="
-            value: ok
-
       - name: total_eth
         agg: sum
         expr: total_eth_value
 
-        filter:
-          - field: cluster__size_status
-            operator: "="
-            value: ok
-
+      - name: high_risk_clusters_count
+        agg: sum
+        expr: is_high_risk
 
 metrics:
   - name: clusters_count
-    type: simple
-
+    label: "clusters Count"
+    type: simple   
     type_params:
       measure:
         name: clusters_count
 
   - name: total_eth
-    type: simple
-
+    label: "total ETH value"
+    type: simple  
     type_params:
       measure:
         name: total_eth
 
-  - name: high_risk_cluster_count
+  - name: high_risk_clusters_count
+    label: "clusters count of high risk category" 
     type: simple
-
     type_params:
       measure:
-        name: clusters_count
-
-    filter:
-      - field: cluster__risk_flag
-        operator: "="
-        value: high_risk
+        name: high_risk_clusters_count
 
   - name: pct_high_risk
+    label: "high risk category share"
     type: derived
-
     type_params:
-      expr: high_risk_cluster_count / clusters_count
+      expr: high_risk_clusters_count / clusters_count
 
       metrics:
-        - name: high_risk_cluster_count
+        - name: high_risk_clusters_count
         - name: clusters_count
 
   - name: avg_eth_by_risk_flag
+    label: "average ETH value by risk flag"
     type: derived
-
     type_params:
       expr: total_eth / clusters_count
 

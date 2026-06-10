@@ -1,0 +1,12 @@
+version: 2
+
+models:
+  - name: dim_date
+    description: Daily calendar table
+    time_spine:
+      standard_granularity_column: date_day
+
+    columns:
+      - name: date_day
+        description: Daily date
+        granularity: day

@@ -35,6 +35,15 @@ with result AS (
 )
 
 SELECT * 
+,CASE
+    WHEN size_status = 'ok' THEN 1
+    ELSE 0
+    END AS is_valid_cluster
+
+,CASE
+    WHEN risk_flag = 'high_risk' THEN 1
+    ELSE 0
+    END AS is_high_risk
 FROM result
 ORDER BY total_eth_value DESC
 

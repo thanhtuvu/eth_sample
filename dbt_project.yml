@@ -33,3 +33,12 @@ models:
     marts:
       +materialized: table
       +schema: marts
+      
+semantic-models:
+  +enabled: true
+
+metrics:
+  +enabled: true
+
+saved-queries:
+  +enabled: true

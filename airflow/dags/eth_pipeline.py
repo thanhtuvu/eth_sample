@@ -6,7 +6,7 @@ from airflow.models.baseoperator import chain
 
 from datetime import datetime, timedelta
 from utils.clusters_utils import compute_wallet_clusters
-from utils.load_tnx import insert_yesterday_raw_tnx
+from utils.load_tnx_from_df import insert_yesterday_raw_tnx #for testing only: to bypass the billing-enabled request from BigQuery
 import os
 
 log = LoggingMixin().log
@@ -35,6 +35,7 @@ DBT_DIRS = (
     f"--project-dir \"{DBT_PROJECT_DIR}\" "
     f"--profiles-dir \"{DBT_PROFILES_DIR}\""
 )
+
 # ── CALLBACK wrapper function ────────────────────────────────────────────
 def retry_callback(context):
     ti = context['task_instance']
@@ -109,12 +110,15 @@ with DAG(
 
     #Staging model
     load_raw_tnx = PythonOperator(
-        task_id="load_raw_tnx",
-        python_callable=insert_yesterday_raw_tnx,
-        execution_timeout=timedelta(minutes=90),
-        op_kwargs={
-            "target_date": "{{ yesterday_ds }}"
-    })
+        task_id="load_raw_tnx"
+        ,python_callable=insert_yesterday_raw_tnx
+        # ,python_callable=lambda **kwargs: log.info(
+        #     "[MOCK] Skipping DML load — free tier billing not enabled"
+        # ) # the mock option can be used as well      
+        ,execution_timeout=timedelta(minutes=90)
+        # ,op_kwargs={
+            # "target_date": "{{ (logical_date - macros.timedelta(days=1)).strftime('%Y-%m-%d') }}"}
+    )
 
    # Wallet Edges
     wallet_edges = BashOperator(
@@ -161,7 +165,6 @@ with DAG(
     )
 
     # Pipeline sequence
-    source_freshness
-    load_raw_tnx >> wallet_edges >> wallet_clusters 
+    source_freshness >> load_raw_tnx >> wallet_edges >> wallet_clusters 
     wallet_edges >> downstream_tasks[0] >> downstream_tasks[1] >>  downstream_tasks[-1]
     wallet_clusters >>  downstream_tasks[-1] >> dbt_tests

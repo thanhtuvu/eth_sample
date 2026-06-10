@@ -1,0 +1,11 @@
+ETH_2026_sample:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: "{{ env_var('GCP_PROJECT') }}"
+      dataset: dbt_dev
+      keyfile: "{{ env_var('GCP_KEY') }}"
+      threads: 4
+      timeout_seconds: 300

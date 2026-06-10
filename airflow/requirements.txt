@@ -1,14 +1,24 @@
+# apache-airflow-providers-google==22.0.0
 
-apache-airflow-providers-google==10.13.0
+# dbt-bigquery==1.11.1
+# dbt-metricflow==0.211.0
 
-dbt-bigquery==1.7.0
-# astronomer-cosmos==1.4.0
+# networkx==3.6.1
+# pandas==2.3.3
+# pyarrow==24.0.0
 
-networkx==3.2.0
+# google-cloud-bigquery==3.41.0
 
-pandas==2.1.0
-google-cloud-bigquery==3.13.0
-pyarrow==14.0.0
-db-dtypes==1.2.0
+# python-dotenv==1.2.2
+apache-airflow-providers-google
 
-python-dotenv==1.0.0
+dbt-bigquery
+dbt-metricflow
+
+networkx
+pandas
+pyarrow
+
+google-cloud-bigquery
+
+python-dotenv

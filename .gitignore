@@ -2,7 +2,7 @@
 target/
 dbt_packages/
 logs/
-profiles.yml
+# profiles.yml
 
 # ── GCP credentials ──────────────────────────────────────────────────
 *_gcp_key.json
@@ -14,7 +14,7 @@ airflow/airflow.db
 airflow/airflow-webserver.pid
 
 # ── Environment & secrets ─────────────────────────────────────────────
-.env
+# .env
 
 # ── Python ───────────────────────────────────────────────────────────
 *.pyc
