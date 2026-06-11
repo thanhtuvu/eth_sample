@@ -4,14 +4,13 @@
 Main DAG:
 
 
-[`airflow/dags/eth_pipeline.py`](./eth_pipeline.py)
+[`airflow/dags/eth_pipeline.py`](./dags/eth_pipeline.py)
 
 
 Supporting Python utilities:
 
-
-[`airflow/dags/utils/clusters_utils.py`](./clusters_utils.py)\
-[`airflow/dags/utils/load_tnx.py`](./load_tnx.py)
+[`airflow/dags/utils/clusters_utils.py`](./dags/utils/clusters_utils.py)\
+[`airflow/dags/utils/load_tnx_from_df.py`](./dags/utils/load_tnx_from_df.py)
 
 
 ---
@@ -198,11 +197,7 @@ docker-compose up -d
 
 ---
 ## BigQuery Free Tier — Important Limitation
-- To bypass the billing-enabled request if imported:
-```python
-from utils.load_tnx import insert_yesterday_raw_tnx #which uses DML statements - `DELETE` and `INSERT` specifically
-```
-do this instead:
+- To bypass the billing-enabled request, import this instead:
 ```python
 from utils.load_tnx_from_df import insert_yesterday_raw_tnx #which `SELECT` raw data into a python DataFrame (limit 50,000 rows for demonstration purpose only) and load the DataFrame into BigQuery's destination table. 
 ```
@@ -291,11 +286,11 @@ from utils.clusters_utils import compute_wallet_clusters
 
 ```
 **Why `fct_wallet_clusters` still has a dbt model file:**
-- There is dbt Python model at: [`models/marts/fct_wallet_clusters.sql`](../models/marts/fct_wallet_clusters.sql). The file uses the same algorithm as the `compute_wallet_clusters()` function. For now, it's not part of the pipeline. 
+- There is dbt Python model at: [`models/marts/fct_wallet_clusters.py`](../models/marts/fct_wallet_clusters.py). The file uses the same algorithm as the `compute_wallet_clusters()` function. For now, it's not part of the pipeline. 
 
 - But it's a preferred approach in production — dbt executes the Python model via Dataproc which is a paid feature in BigQuery. So we don't need a separate `PythonOperator` task in Airflow.  
 
-- Another reason the file stays inside the `models` folder is for dbt to pick it up in the project linage. Without it, the `fct_wallet_clusters` node won't show up. The `fct_wallet_clusters` table is used to calculate the `fct_wallet_audit` table downstream whose result is shown in a dashboard. See more on the project lineage in [`/README-project.md`](../README-project.md)
+- Another reason the file stays inside the `models` folder is for dbt to pick it up in the project linage. Without it, the `fct_wallet_clusters` node won't show up. The `fct_wallet_clusters` table is used to calculate the `fct_wallet_audit` table downstream whose result is shown in a dashboard. See more on the project lineage in [`/README.md`](../README.md)
 
 ---
 

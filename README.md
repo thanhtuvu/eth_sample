@@ -79,7 +79,7 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
         ![dbt lineage](docs/images/BQ_datasets.png)
 
 
-- **Macros** — the project includes a few macros to reduce repeated SQL logic. One useful macro is `audit_cluster_health` which checks whether a cluster is valid and the risk category a cluster represents. 
+- **Macros** — the project includes a few macros to reduce repeated SQL logic. One useful macro is [`macros/audit_cluster_health.sql`](macros/audit_cluster_health.sql) which checks whether a cluster is valid and the risk category a cluster represents. 
 
     1. The centralized thresholds make it easier to adjust later as this macro is the one place to update instead of hunting across multiple SQL files:
         ```sql
@@ -92,7 +92,7 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
             ,high_risk_min_eth=100
         ) %}
         ```
-    2. The macro is referenced in the `fct_clusters_audit` table but can be called from any other model that needs the same audit logic:
+    2. The macro is referenced in the [`models/marts/fct_clusters_audit.sql`](models/marts/fct_clusters_audit.sql) table but can be called from any other model that needs the same audit logic:
         ```sql
         {{ config(materialized='view') }} 
 
@@ -113,9 +113,9 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
 ---
 
 ## Semantic Model
-**A semantic model named `semantic_wallet_cluster`** configured in [`models/marts/semantic_models/sem_wallet_clusters.yml`](../models/marts/semantic_models/sem_wallet_clusters.yml) 
+**A semantic model named `semantic_wallet_cluster`** configured in [`models/marts/semantic_models/sem_wallet_clusters.yml`](models/marts/semantic_models/sem_wallet_clusters.yml) 
 
-- The semantic model sits on top of `fct_clusters_audit`. It defines `cluster_id` as the primary entity, `risk_flag` and `size_status` as categorical dimensions for grouping, and `created_at` as the time dimension for trend analysis. 
+- The semantic model sits on top of `fct_clusters_audit`. It defines `cluster_id` as the primary entity, `risk_flag` and `size_status` as categorical dimensions for grouping. 
 
     ```yaml
     entities:
@@ -131,13 +131,6 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
     - name: size_status
         type: categorical
         expr: size_status
-
-    - name: created_at
-        type: time
-        expr: created_at
-
-        type_params:
-        time_granularity: day
     ```
 - 3 measures are defined — `clusters_count`, `total_eth` and `high_risk_clusters_count`. These are not directly exposed as metrics but serve as reusable building blocks that the metrics layer composes from.
 
