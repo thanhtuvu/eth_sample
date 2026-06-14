@@ -27,7 +27,7 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
         2.1 [`models/staging/_src_tnx.yml`](models/staging/_src_tnx.yml): define the source data that feeds into `raw_tnx` table. So it's shown up as the 1st node in the project linage\
         2.2 [`models/staging/raw_tnx.yml`](models/staging/raw_tnx.yml): set the configurations for `raw_tnx` table. `contract` is `enforced` so that all column names and data types can't be compromised.\
         2.3 [`models/staging/raw_tnx.sql`](models/staging/raw_tnx.sql):\
-        -> **The model is materialized as `incremental`** using a `merge` strategy on `tnx_hash` as the unique key. What it means is on each insert, BigQuery scans only the relevant `block_date` partition to add new rows and update any duplicated row using tnx_hash to determine if any duplication. It won't scan or rebuild the entire table.
+        -> **The model is materialized as `incremental`** using a `merge` strategy on `tnx_hash` as the unique key. What it means is on each insert, BigQuery scans only the relevant `block_date` partition to add new rows and update any duplicated row using `tnx_hash` to determine if any duplication. It won't scan or rebuild the entire table.
         ```sql
             {{
                 config(
@@ -215,7 +215,7 @@ An end-to-end pipeline that forms clusters by identifying wallets that have ETH 
     ```
 
 **How to query sl metrics:** 
-- Read more details here: [`scripts/README-scripts.md`](scripts/README-scripts.md)
+- Read more details here: [`scripts/README.md`](scripts/README.md)
 
 ---
 
@@ -236,7 +236,7 @@ These constraints shape how the pipeline is to work around such limits.
 ## Data Pipeline: on an Airflow success run
  ![dbt lineage](docs/images/airflow_task_run.png)
 
-See more details on the pipeline setup here: [`airflow/README-airflow.md`](airflow/README-airflow.md).
+See more details on the pipeline setup here: [`airflow/README.md`](airflow/README.md).
 
 ---
 ## Portfolio Use Case
